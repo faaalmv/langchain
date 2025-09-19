@@ -7,3 +7,4 @@ langchain-google-genai
 google-api-python-client
 langchain-community
 ddgs
+langchain-hub
