@@ -28,21 +28,21 @@
             const query = queryInput.value;
             resultsContainer.innerHTML = 'Investigando, por favor espera...';
 
-            // Usar fetch para enviar la consulta al backend
             fetch('/api/investigate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ query: query }) // Convertir nuestro objeto a una cadena JSON
+                body: JSON.stringify({ query: query })
             })
-            .then(response => response.json()) // Convertir la respuesta del servidor de JSON a un objeto JS
+            .then(response => response.json())
             .then(data => {
-                // (En el siguiente paso, manejaremos esta data)
-                console.log("Respuesta del backend:", data);
+                // Tomar la respuesta del agente desde el objeto 'data'
+                const agentResponse = data.response;
+                // Mostrar la respuesta en el contenedor de resultados
+                resultsContainer.innerText = agentResponse; // Usamos innerText para evitar problemas de formato
             })
             .catch(error => {
-                // Manejar posibles errores de red
                 console.error('Error:', error);
                 resultsContainer.innerHTML = 'Ocurrió un error al contactar al servidor.';
             });
