@@ -40,7 +40,7 @@ tools = [
 agent = initialize_agent(
     tools,
     llm,
-    agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     verbose=True  # Muestra los "pensamientos" del agente en la terminal
 )
 # ------------------------------------
