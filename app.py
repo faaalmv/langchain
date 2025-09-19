@@ -1,5 +1,16 @@
+# Importaciones de sistema y para variables de entorno
+import os
+from dotenv import load_dotenv
+
+# Importaciones de LangChain y Google Generative AI
+from langchain_google_genai import ChatGoogleGenerativeAI
+# (Añadiremos más importaciones de LangChain en los próximos pasos)
+
 # Importar las funciones 'request' y 'jsonify' de Flask
 from flask import Flask, render_template, request, jsonify
+
+# Cargar las variables de entorno desde el archivo .env
+load_dotenv()
 
 # Crear una instancia de la aplicación Flask
 app = Flask(__name__)
