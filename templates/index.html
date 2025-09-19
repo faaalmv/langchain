@@ -18,6 +18,36 @@
     <h2>Resultados:</h2>
     <div id="results-container">
         </div>
+    
+    <script>
+        const queryInput = document.getElementById('query-input');
+        const submitButton = document.getElementById('submit-button');
+        const resultsContainer = document.getElementById('results-container');
 
-    </body>
+        submitButton.addEventListener('click', () => {
+            const query = queryInput.value;
+            resultsContainer.innerHTML = 'Investigando, por favor espera...';
+
+            // Usar fetch para enviar la consulta al backend
+            fetch('/api/investigate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: query }) // Convertir nuestro objeto a una cadena JSON
+            })
+            .then(response => response.json()) // Convertir la respuesta del servidor de JSON a un objeto JS
+            .then(data => {
+                // (En el siguiente paso, manejaremos esta data)
+                console.log("Respuesta del backend:", data);
+            })
+            .catch(error => {
+                // Manejar posibles errores de red
+                console.error('Error:', error);
+                resultsContainer.innerHTML = 'Ocurrió un error al contactar al servidor.';
+            });
+        });
+    </script>
+
+</body>
 </html>
