@@ -5,3 +5,4 @@ python-dotenv
 requests
 langchain-google-genai
 google-api-python-client
+langchain-community
