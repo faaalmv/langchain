@@ -1,10 +1,12 @@
+
 # Importaciones de sistema y para variables de entorno
 import os
 from dotenv import load_dotenv
 
 # Importaciones de LangChain y Google Generative AI
 from langchain_google_genai import ChatGoogleGenerativeAI
-# (Añadiremos más importaciones de LangChain en los próximos pasos)
+from langchain.agents import AgentType, initialize_agent, Tool
+from langchain_community.tools import DuckDuckGoSearchRun
 
 # Importar las funciones 'request' y 'jsonify' de Flask
 from flask import Flask, render_template, request, jsonify
@@ -17,11 +19,24 @@ app = Flask(__name__)
 
 # --- CONFIGURACIÓN DEL AGENTE DE IA ---
 # Inicializar el modelo de lenguaje (LLM) de Gemini.
-# Leemos la clave de API de las variables de entorno para mayor seguridad.
 llm = ChatGoogleGenerativeAI(
     model="gemini-pro",
     google_api_key=os.getenv("GEMINI_API_KEY")
 )
+
+# --- CONFIGURACIÓN DE HERRAMIENTAS ---
+# Inicializar la herramienta de búsqueda web
+search = DuckDuckGoSearchRun()
+
+# Definir la lista de herramientas que el agente podrá usar
+# Cada herramienta tiene un nombre y una descripción que el agente usa para decidir cuál elegir
+tools = [
+    Tool(
+        name="Web Search",
+        func=search.run,
+        description="useful for when you need to answer questions about current events or the current state of the world",
+    ),
+]
 # ------------------------------------
 
 # Definir la ruta principal (la raíz del sitio)
@@ -44,11 +59,9 @@ def investigate():
     data = request.get_json()
 
     # Extraer el valor asociado a la clave 'query'
-    # Usamos .get() para evitar errores si la clave no existe
     user_query = data.get('query')
 
     # Por ahora, simplemente imprimimos la consulta en la consola del servidor
-    # para verificar que la estamos recibiendo correctamente.
     print(f"Consulta recibida: {user_query}")
 
     # Devolvemos una respuesta JSON confirmando la consulta recibida
