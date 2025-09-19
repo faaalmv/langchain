@@ -54,19 +54,32 @@ def index():
     """
     return render_template('index.html')
 
-# Definir la ruta para la API de investigación
 @app.route('/api/investigate', methods=['POST'])
 def investigate():
     """
-    Este endpoint ahora lee el JSON de la petición,
-    extrae la consulta del usuario y la imprime en la terminal.
+    Este endpoint recibe la consulta del usuario, la pasa al agente de IA
+    y devuelve la respuesta generada.
     """
     data = request.get_json()
     user_query = data.get('query')
 
+    if not user_query:
+        return jsonify({"error": "No se proporcionó ninguna consulta"}), 400
+
+    # Imprimir la consulta para depuración
     print(f"Consulta recibida: {user_query}")
 
-    return jsonify({"status": "recibido", "query_recibida": user_query})
+    # Invocar al agente con la consulta del usuario
+    # El agente procesará la consulta, usará las herramientas si es necesario,
+    # y generará una respuesta.
+    response = agent.invoke({"input": user_query})
+
+    # Extraer la respuesta del diccionario de salida del agente
+    agent_response = response.get("output")
+
+    # Devolver la respuesta del agente al frontend
+    return jsonify({"response": agent_response})
+
 
 # Esto permite ejecutar la aplicación directamente con 'python app.py'
 if __name__ == '__main__':
