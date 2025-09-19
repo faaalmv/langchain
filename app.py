@@ -1,4 +1,3 @@
-
 # Importaciones de sistema y para variables de entorno
 import os
 from dotenv import load_dotenv
@@ -28,8 +27,6 @@ llm = ChatGoogleGenerativeAI(
 # Inicializar la herramienta de búsqueda web
 search = DuckDuckGoSearchRun()
 
-# Definir la lista de herramientas que el agente podrá usar
-# Cada herramienta tiene un nombre y una descripción que el agente usa para decidir cuál elegir
 tools = [
     Tool(
         name="Web Search",
@@ -37,6 +34,15 @@ tools = [
         description="useful for when you need to answer questions about current events or the current state of the world",
     ),
 ]
+
+# --- CREACIÓN DEL AGENTE ---
+# Inicializar el agente combinando el LLM y las herramientas
+agent = initialize_agent(
+    tools,
+    llm,
+    agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
+    verbose=True  # Muestra los "pensamientos" del agente en la terminal
+)
 # ------------------------------------
 
 # Definir la ruta principal (la raíz del sitio)
@@ -55,16 +61,11 @@ def investigate():
     Este endpoint ahora lee el JSON de la petición,
     extrae la consulta del usuario y la imprime en la terminal.
     """
-    # Obtener los datos JSON enviados en la petición
     data = request.get_json()
-
-    # Extraer el valor asociado a la clave 'query'
     user_query = data.get('query')
 
-    # Por ahora, simplemente imprimimos la consulta en la consola del servidor
     print(f"Consulta recibida: {user_query}")
 
-    # Devolvemos una respuesta JSON confirmando la consulta recibida
     return jsonify({"status": "recibido", "query_recibida": user_query})
 
 # Esto permite ejecutar la aplicación directamente con 'python app.py'
