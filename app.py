@@ -15,6 +15,15 @@ load_dotenv()
 # Crear una instancia de la aplicación Flask
 app = Flask(__name__)
 
+# --- CONFIGURACIÓN DEL AGENTE DE IA ---
+# Inicializar el modelo de lenguaje (LLM) de Gemini.
+# Leemos la clave de API de las variables de entorno para mayor seguridad.
+llm = ChatGoogleGenerativeAI(
+    model="gemini-pro",
+    google_api_key=os.getenv("GEMINI_API_KEY")
+)
+# ------------------------------------
+
 # Definir la ruta principal (la raíz del sitio)
 @app.route('/')
 def index():
