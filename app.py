@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 
 # Importaciones de LangChain y Google Generative AI
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents import AgentType, initialize_agent, Tool
+from langchain.agents import create_react_agent, AgentExecutor
+from langchain import hub
+from langchain.agents import Tool
 from langchain_community.tools import DuckDuckGoSearchRun
 
 # Importar las funciones 'request' y 'jsonify' de Flask
@@ -36,13 +38,15 @@ tools = [
 ]
 
 # --- CREACIÓN DEL AGENTE ---
-# Inicializar el agente combinando el LLM y las herramientas
-agent = initialize_agent(
-    tools,
-    llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    verbose=True  # Muestra los "pensamientos" del agente en la terminal
-)
+
+# 1. Jalar el prompt pre-diseñado para el tipo de agente que queremos (ReAct)
+prompt = hub.pull("hwchase17/react")
+
+# 2. Crear el agente, uniendo el LLM, las herramientas y el prompt.
+agent = create_react_agent(llm, tools, prompt)
+
+# 3. Crear el Ejecutor del Agente, que es el que realmente corre el ciclo de razonamiento.
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 # ------------------------------------
 
 # Definir la ruta principal (la raíz del sitio)
@@ -72,7 +76,7 @@ def investigate():
     # Invocar al agente con la consulta del usuario
     # El agente procesará la consulta, usará las herramientas si es necesario,
     # y generará una respuesta.
-    response = agent.invoke({"input": user_query})
+    response = agent_executor.invoke({"input": user_query})
 
     # Extraer la respuesta del diccionario de salida del agente
     agent_response = response.get("output")
