@@ -17,11 +17,22 @@ def index():
 @app.route('/api/investigate', methods=['POST'])
 def investigate():
     """
-    Este endpoint se activa cuando recibe una petición POST.
-    Por ahora, solo confirma la recepción.
+    Este endpoint ahora lee el JSON de la petición,
+    extrae la consulta del usuario y la imprime en la terminal.
     """
-    # Devolvemos una respuesta simple en formato JSON
-    return jsonify({"status": "recibido"})
+    # Obtener los datos JSON enviados en la petición
+    data = request.get_json()
+
+    # Extraer el valor asociado a la clave 'query'
+    # Usamos .get() para evitar errores si la clave no existe
+    user_query = data.get('query')
+
+    # Por ahora, simplemente imprimimos la consulta en la consola del servidor
+    # para verificar que la estamos recibiendo correctamente.
+    print(f"Consulta recibida: {user_query}")
+
+    # Devolvemos una respuesta JSON confirmando la consulta recibida
+    return jsonify({"status": "recibido", "query_recibida": user_query})
 
 # Esto permite ejecutar la aplicación directamente con 'python app.py'
 if __name__ == '__main__':
