@@ -21,7 +21,7 @@ app = Flask(__name__)
 # --- CONFIGURACIÓN DEL AGENTE DE IA ---
 # Cambiamos al modelo que especificaste:
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
+    model="gemini-1.5-flash",
     google_api_key=os.getenv("GEMINI_API_KEY")
 )
 
@@ -52,22 +52,29 @@ REGLAS ESTRICTAS:
 - **Si no encuentras datos numéricos para una pregunta específica, indícalo claramente.**
 """
 
-# 2. Jalar el prompt pre-diseñado para el tipo de agente que queremos (ReAct)
-prompt = hub.pull("hwchase17/react")
+# 2. Jalar el prompt original desde el Hub
+original_prompt = hub.pull("hwchase17/react")
 
-# 3. Modificamos el prompt para incluir nuestras nuevas instrucciones
-#    Insertamos nuestro mensaje de sistema al principio de la secuencia del prompt.
-prompt.messages.insert(
-    0,
-    ("system", system_message),
-)
+# 3. Creamos una nueva plantilla de texto combinando nuestras instrucciones y la plantilla original
+from langchain.prompts import PromptTemplate
+
+# Extraemos el texto de la plantilla original
+original_template = original_prompt.template
+
+# Creamos la nueva plantilla completa
+new_template = system_message + "\n\n" + original_template
+
+# Creamos el objeto PromptTemplate final
+prompt = PromptTemplate.from_template(new_template)
+
 
 # 4. Crear el agente, uniendo el LLM, las herramientas y nuestro NUEVO prompt modificado.
 agent = create_react_agent(llm, tools, prompt)
 
-# 5. Crear el Ejecutor del Agente, que es el que realmente corre el ciclo de razonamiento.
+# 5. Crear el Ejecutor del Agente.
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 # ------------------------------------
+
 
 # Definir la ruta principal (la raíz del sitio)
 @app.route('/')
