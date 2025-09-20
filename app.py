@@ -47,7 +47,7 @@ agent = create_react_agent(llm, tools, prompt)
 
 # 3. Crear el Ejecutor del Agente, que es el que realmente corre el ciclo de razonamiento.
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-# ------------------------------------\
+# ------------------------------------
 
 # Definir la ruta principal (la raíz del sitio)
 @app.route('/')
@@ -61,8 +61,7 @@ def index():
 @app.route('/api/investigate', methods=['POST'])
 def investigate():
     """
-    Este endpoint recibe la consulta del usuario, la pasa al agente de IA
-    y devuelve la respuesta generada.
+    Este endpoint ahora maneja posibles errores del agente de forma robusta.
     """
     data = request.get_json()
     user_query = data.get('query')
@@ -70,19 +69,19 @@ def investigate():
     if not user_query:
         return jsonify({"error": "No se proporcionó ninguna consulta"}), 400
 
-    # Imprimir la consulta para depuración
     print(f"Consulta recibida: {user_query}")
 
-    # Invocar al agente con la consulta del usuario
-    # El agente procesará la consulta, usará las herramientas si es necesario,
-    # y generará una respuesta.
-    response = agent_executor.invoke({"input": user_query})
-
-    # Extraer la respuesta del diccionario de salida del agente
-    agent_response = response.get("output")
-
-    # Devolver la respuesta del agente al frontend
-    return jsonify({"response": agent_response})
+    try:
+        # Invocar al agente dentro de un bloque try/except
+        response = agent_executor.invoke({"input": user_query})
+        agent_response = response.get("output")
+        return jsonify({"response": agent_response})
+    
+    except Exception as e:
+        # Si algo sale mal con el agente, capturamos el error
+        print(f"Error en la invocación del agente: {e}")
+        # Y devolvemos un mensaje de error claro al frontend
+        return jsonify({"error": f"Ocurrió un error al procesar la solicitud: {e}"}), 500
 
 
 # Esto permite ejecutar la aplicación directamente con 'python app.py'
