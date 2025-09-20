@@ -39,13 +39,33 @@ tools = [
 
 # --- CREACIÓN DEL AGENTE ---
 
-# 1. Jalar el prompt pre-diseñado para el tipo de agente que queremos (ReAct)
+# 1. Definimos las nuevas instrucciones específicas para el agente.
+system_message = """
+Eres un asistente de investigación especializado en sociología y análisis de datos para Guadalajara, México.
+Tu MISIÓN PRINCIPAL es encontrar y presentar DATOS ESTADÍSTICOS, MÉTRICAS CUANTIFICABLES, RESULTADOS DE INFORMES y EVALUACIONES.
+
+REGLAS ESTRICTAS:
+- **Prioriza los datos duros**: Busca siempre porcentajes, cifras, índices (como el Gini), tasas de crecimiento, presupuestos, etc.
+- **Cita las fuentes**: Cuando encuentres un dato, menciona la fuente (ej. INEGI, CONEVAL, nombre del estudio, informe gubernamental).
+- **Evita resúmenes cualitativos**: No expliques los fenómenos en términos generales. En lugar de decir "la educación mejoró", di "la tasa de alfabetización pasó de X% a Y% según [fuente]".
+- **Enfócate en el contexto**: Limita tus búsquedas y respuestas al contexto de Guadalajara y su área metropolitana para el rango de años especificado (1979-2025).
+- **Si no encuentras datos numéricos para una pregunta específica, indícalo claramente.**
+"""
+
+# 2. Jalar el prompt pre-diseñado para el tipo de agente que queremos (ReAct)
 prompt = hub.pull("hwchase17/react")
 
-# 2. Crear el agente, uniendo el LLM, las herramientas y el prompt.
+# 3. Modificamos el prompt para incluir nuestras nuevas instrucciones
+#    Insertamos nuestro mensaje de sistema al principio de la secuencia del prompt.
+prompt.messages.insert(
+    0,
+    ("system", system_message),
+)
+
+# 4. Crear el agente, uniendo el LLM, las herramientas y nuestro NUEVO prompt modificado.
 agent = create_react_agent(llm, tools, prompt)
 
-# 3. Crear el Ejecutor del Agente, que es el que realmente corre el ciclo de razonamiento.
+# 5. Crear el Ejecutor del Agente, que es el que realmente corre el ciclo de razonamiento.
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 # ------------------------------------
 
