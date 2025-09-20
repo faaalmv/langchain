@@ -89,7 +89,13 @@ new_template = system_message + "\n\n" + original_template
 prompt = PromptTemplate.from_template(new_template)
 
 agent = create_react_agent(llm, tools, prompt)
-agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True) # Añadimos manejo de errores
+agent_executor = AgentExecutor(
+    agent=agent,
+    tools=tools,
+    verbose=True,
+    handle_parsing_errors=True,
+    return_intermediate_steps=True # <-- AÑADE ESTA LÍNEA
+)
 
 # --- RUTAS DE LA APLICACIÓN ---
 @app.route('/')
@@ -103,9 +109,29 @@ def investigate():
     if not user_query:
         return jsonify({"error": "No se proporcionó ninguna consulta"}), 400
     try:
+        # Invocar al agente
         response = agent_executor.invoke({"input": user_query})
-        agent_response = response.get("output")
-        return jsonify({"response": agent_response})
+
+        # --- CONSTRUCCIÓN DEL INFORME COMPLETO ---
+        full_report = "## Proceso de Investigación del Agente ##\n\n"
+
+        # 1. Añadir los pasos intermedios (el cuaderno del detective)
+        intermediate_steps = response.get("intermediate_steps", [])
+        for i, (action, observation) in enumerate(intermediate_steps):
+            full_report += f"### Paso {i+1} ###\n"
+            full_report += f"**Pensamiento:** {action.log.strip()}\n\n"
+            full_report += f"**Acción Realizada:** {action.tool}\n"
+            full_report += f"**Búsqueda:** {action.tool_input}\n\n"
+            full_report += f"**Observación (Resultados en Bruto):**\n---\n{observation}\n---\n\n"
+
+        # 2. Añadir la respuesta final (el informe para el cliente)
+        final_answer = response.get("output")
+        full_report += "## Respuesta Final del Agente ##\n\n"
+        full_report += final_answer
+
+        # Devolver el informe completo a la web app
+        return jsonify({"response": full_report})
+
     except Exception as e:
         print(f"Error en la invocación del agente: {e}")
         return jsonify({"error": f"Ocurrió un error al procesar la solicitud: {e}"}), 500
