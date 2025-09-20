@@ -3,48 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agente de Investigación Web</title>
-    </head>
+    <title>Agente de Investigación Profesional</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
 <body>
 
-    <h1>Agente de Investigación Web</h1>
+    <div class="container">
+        <header>
+            <h1>Agente de Investigación IA</h1>
+            <p>Potenciado por LangChain y Gemini</p>
+        </header>
 
-    <textarea id="query-input" placeholder="Escribe aquí tu solicitud de investigación..."></textarea>
-    <br>
-    <button id="submit-button">Investigar</button>
+        <main>
+            <textarea id="query-input" placeholder="Escribe aquí tu solicitud de investigación... por ejemplo: ¿cuáles fueron los avances más importantes en la exploración espacial en 2024?"></textarea>
+            <button id="submit-button">Investigar</button>
 
-    <hr>
-
-    <h2>Resultados:</h2>
-    <div id="results-container">
-        </div>
+            <div class="results-area">
+                <h2>Resultados</h2>
+                <div class="loader" id="loader"></div>
+                <div id="results-container"></div>
+            </div>
+        </main>
+    </div>
     
     <script>
         const queryInput = document.getElementById('query-input');
         const submitButton = document.getElementById('submit-button');
         const resultsContainer = document.getElementById('results-container');
+        const loader = document.getElementById('loader');
 
         submitButton.addEventListener('click', () => {
-            const query = queryInput.value;
-            resultsContainer.innerHTML = 'Investigando, por favor espera...';
+            const query = queryInput.value.trim();
+            if (!query) {
+                resultsContainer.innerText = "Por favor, introduce una consulta.";
+                return;
+            }
+
+            // Iniciar estado de carga
+            resultsContainer.innerHTML = '';
+            loader.style.display = 'block';
+            submitButton.disabled = true;
+            submitButton.innerText = 'Investigando...';
 
             fetch('/api/investigate', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ query: query })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    // Si la respuesta no es OK, la convertimos en un error para que la capture el .catch
+                    return response.json().then(err => { throw new Error(err.error || 'Error desconocido del servidor'); });
+                }
+                return response.json();
+            })
             .then(data => {
-                // Tomar la respuesta del agente desde el objeto 'data'
-                const agentResponse = data.response;
-                // Mostrar la respuesta en el contenedor de resultados
-                resultsContainer.innerText = agentResponse; // Usamos innerText para evitar problemas de formato
+                resultsContainer.innerText = data.response;
             })
             .catch(error => {
                 console.error('Error:', error);
-                resultsContainer.innerHTML = 'Ocurrió un error al contactar al servidor.';
+                resultsContainer.innerText = `Ocurrió un error: ${error.message}`;
+            })
+            .finally(() => {
+                // Finalizar estado de carga
+                loader.style.display = 'none';
+                submitButton.disabled = false;
+                submitButton.innerText = 'Investigar';
             });
         });
     </script>
