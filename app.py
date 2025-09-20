@@ -19,9 +19,9 @@ load_dotenv()
 app = Flask(__name__)
 
 # --- CONFIGURACIÓN DEL AGENTE DE IA ---
-# Inicializar el modelo de lenguaje (LLM) de Gemini.
+# Cambiamos al modelo que especificaste:
 llm = ChatGoogleGenerativeAI(
-    model="gemini-pro",
+    model="gemini-2.5-flash",
     google_api_key=os.getenv("GEMINI_API_KEY")
 )
 
@@ -47,7 +47,7 @@ agent = create_react_agent(llm, tools, prompt)
 
 # 3. Crear el Ejecutor del Agente, que es el que realmente corre el ciclo de razonamiento.
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-# ------------------------------------
+# ------------------------------------\
 
 # Definir la ruta principal (la raíz del sitio)
 @app.route('/')
