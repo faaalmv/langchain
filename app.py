@@ -1,5 +1,6 @@
 # Importaciones de sistema y para variables de entorno
 import os
+import requests # Asegúrate que esta importación esté al principio
 from dotenv import load_dotenv
 
 # Importaciones de LangChain y Google Generative AI
@@ -18,6 +19,38 @@ load_dotenv()
 # Crear una instancia de la aplicación Flask
 app = Flask(__name__)
 
+# --- FUNCIÓN PARA LA NUEVA HERRAMIENTA ACADÉMICA ---
+def search_academic_database(query: str) -> str:
+    """
+    Busca en la base de datos de CORE (Connecting Repositories) artículos de investigación
+    relevantes para la consulta y devuelve los títulos y resúmenes.
+    Es útil para encontrar estudios específicos, datos y análisis académicos.
+    """
+    try:
+        # Puedes obtener una API key gratuita en https://core.ac.uk/api-keys/register
+        # Por ahora, usaremos una búsqueda sin key que es más limitada.
+        api_url = f"https://api.core.ac.uk/v3/search/works?q={query}&limit=5"
+        response = requests.get(api_url)
+        response.raise_for_status()  # Lanza un error si la petición falla
+        
+        results = response.json().get("results", [])
+        
+        if not results:
+            return "No se encontraron artículos académicos sobre este tema en la base de datos de CORE."
+
+        output = "Se encontraron los siguientes artículos académicos:\n"
+        for item in results:
+            title = item.get("title", "Título no disponible")
+            abstract = item.get("abstract", "Resumen no disponible")
+            output += f"- Título: {title}\n  Resumen: {abstract}\n\n"
+        
+        return output
+
+    except requests.RequestException as e:
+        return f"Error al contactar la API académica: {e}"
+    except Exception as e:
+        return f"Ocurrió un error inesperado al procesar la búsqueda académica: {e}"
+
 # --- CONFIGURACIÓN DEL AGENTE DE IA ---
 # Cambiamos al modelo que especificaste:
 llm = ChatGoogleGenerativeAI(
@@ -33,8 +66,13 @@ tools = [
     Tool(
         name="Web Search",
         func=search.run,
-        description="useful for when you need to answer questions about current events or the current state of the world",
+        description="Útil para búsquedas generales, noticias y temas de actualidad. Úsalo primero para tener un panorama general.",
     ),
+    Tool(
+        name="Academic Database Search",
+        func=search_academic_database,
+        description="Útil para encontrar datos específicos, métricas, estudios, informes y análisis cuantitativos en artículos de investigación y papers académicos. Úsalo cuando la búsqueda web general no arroje resultados estadísticos.",
+    )
 ]
 
 # --- CREACIÓN DEL AGENTE ---
